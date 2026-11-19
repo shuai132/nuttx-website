@@ -519,19 +519,6 @@ function start_vm(user, pwd)
         pwd = null;
     }
 
-    function term_wrap_onclick_handler()
-    {
-        var term_wrap_el, w, h, term_bar_el, bar_h;
-        term_wrap_el = document.getElementById("term_wrap");
-        term_bar_el = document.getElementById("term_bar");
-        w = term_wrap_el.clientWidth;
-        h = term_wrap_el.clientHeight;
-        bar_h = term_bar_el.clientHeight;
-        if (term.resizePixel(w, h - bar_h)) {
-            console_resize_event();
-        }
-    }
-
     /* read the parameters */
 
     params = get_params();
@@ -567,20 +554,14 @@ function start_vm(user, pwd)
     if (graphic_enable) {
         graphic_display = new GraphicDisplay(document.getElementById("term_container"), width, height);
     } else {
-        var term_wrap_el;
         width = 0;
         height = 0;
-        
-        /* start the terminal */
-        term = new Term({ cols: cols, rows: rows, scrollback: 10000, fontSize: font_size });
-        term.setKeyHandler(term_handler);
-        term.open(document.getElementById("term_container"),
-                  document.getElementById("term_paste"));
 
-        term_wrap_el = document.getElementById("term_wrap")
-        term_wrap_el.style.width = term.term_el.style.width;
-        term_wrap_el.onclick = term_wrap_onclick_handler;
-            
+        term = create_terminal(cols, rows, font_size, term_handler, function() {
+            if (console_resize_event)
+                console_resize_event();
+        });
+
         term.write("Loading...\r\n");
     }
 
@@ -639,7 +620,7 @@ function on_login()
     }
     
     login_wrap_el.style.display = "none";
-    term_wrap_el.style.display = "block";
+    term_wrap_el.style.display = "flex";
     form.password.value = "";
     form.user.value = "";
     
@@ -658,7 +639,7 @@ function on_login()
         login_wrap_el.style.display = "block";
     } else {
         var term_wrap_el = document.getElementById("term_wrap");
-        term_wrap_el.style.display = "block";
+        term_wrap_el.style.display = "flex";
         start_vm(null, null);
     }
 })();
